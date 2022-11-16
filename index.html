@@ -24,15 +24,15 @@ const projection = d3.geoMercator()
 // Data and color scale
 let data = new Map()
 const colorScale = d3.scaleThreshold()
-  .domain([100000, 1000000, 10000000, 30000000, 100000000, 500000000])
-  .range(d3.schemeBlues[7]);
+  .domain([80000, 140000])
+  .range(d3.schemeBlues[3]);
 
 // Load external data and boot
 Promise.all([
 d3.json("geojson/tract/09.geojson"),
-//d3.csv("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world_population.csv", function(d) {
- //   data.set(d.code, +d.pop)
-//})
+d3.csv("data/tract/hhinc_pop_tract_year.csv", function(d) {
+    data.set(d.GEOID, +d.medinc_all)
+})
 ]).then(function(loadData){
     let topo = loadData[0]
 
@@ -41,16 +41,16 @@ d3.json("geojson/tract/09.geojson"),
     .selectAll("path")
     .data(topo.features)
     .join("path")
-      // draw each country
+      // draw each census tract
       .attr("d", d3.geoPath()
         .projection(projection)
       )
       
-      // set the color of each country
-      //.attr("fill", function (d) {
-       // d.total = data.get(d.id) || 0;
-        //return colorScale(d.total);
-     // })
+      // set the color of each census tract
+      .attr("fill", function (d) {
+        d.total = data.get(d.properties.GEOID) || 0;
+        return colorScale(d.total);
+      })
 })
 
 </script>

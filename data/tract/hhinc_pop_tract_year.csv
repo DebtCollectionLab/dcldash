@@ -1,4 +1,4 @@
-"","GEOID","NAME","pop_all","medinc_all","hh_cnt","year"
+"","id","NAME","pop_all","medinc_all","hh_cnt","year"
 "1","09001010101","Census Tract 101.01, Fairfield County, Connecticut",4192,189219,1347,2020
 "2","09001010102","Census Tract 101.02, Fairfield County, Connecticut",4419,250001,1362,2020
 "3","09001010201","Census Tract 102.01, Fairfield County, Connecticut",3429,250001,1119,2020
