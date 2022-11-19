@@ -24,14 +24,14 @@ const projection = d3.geoMercator()
 // Data and color scale
 let data = new Map()
 const colorScale = d3.scaleThreshold()
-  .domain([80000, 140000])
+  .domain([1, 140000])
   .range(d3.schemeBlues[3]);
 
 // Load external data and boot
 Promise.all([
-d3.json("geojson/tract/09.geojson"),
+//d3.json("geojson/tract/09.geojson"),
 d3.csv("data/tract/hhinc_pop_tract_year.csv", function(d) {
-    data.set(d.GEOID, +d.medinc_all)
+    data.set(d.id, +d.medinc_all) // convert medinc_all column as number
 })
 ]).then(function(loadData){
     let topo = loadData[0]
