@@ -5,14 +5,22 @@
 <script src="https://d3js.org/d3.v6.js"></script>
 
 <!-- Create an element where the map will take place -->
-<svg id="my_dataviz" width="800" height="300"></svg>
+<h1>Map: Connecticut at Census Tract</h1>
+<p>Debt Collection Case Filing Prevalence<p>
+<svg id="left_chromap" width="600" height="300"></svg>
+<p>Median Household Income Filing Prevalence<p>
+<svg id="right_chromap" width="600" height="300"></svg>
+<br>
+<h1>Bivariate relationship of Household Income and Case Filing Prevalence in Connecticut at Census Tract</h1>
+<svg id="scatter_plot" width="800" height = "700"></svg>
 
 <script>
 
-// The svg
-const svg = d3.select("svg"),
-  width = +svg.attr("width"),
-  height = +svg.attr("height");
+// The svg on the left
+const svg1 = d3.select("#left_chromap"),
+  svg2 = d3.select("#right_chromap");
+  width = +svg1.attr("width"),
+  height = +svg1.attr("height");
 
 // Map and projection
 const path = d3.geoPath();
@@ -23,21 +31,30 @@ const projection = d3.geoMercator()
 
 // Data and color scale
 let data = new Map()
+let data2 = new Map()
+let biv_data = new Array()
+
 const colorScale = d3.scaleThreshold()
-  .domain([1, 140000])
-  .range(d3.schemeBlues[3]);
+  .domain([30, 100])
+  .range(d3.schemeBlues[3]); //[ "#deebf7", "#9ecae1", "#3182bd" ]
+
+const colorScale2 = d3.scaleThreshold()
+  .domain([260000/3, 260000/3*2])
+  .range(d3.schemeReds[3]); //[ "#fee0d2", "#fc9272", "#de2d26" ]
+
+
 
 // Load external data and boot
 Promise.all([
-//d3.json("geojson/tract/09.geojson"),
-d3.csv("data/tract/hhinc_pop_tract_year.csv", function(d) {
-    data.set(d.id, +d.medinc_all) // convert medinc_all column as number
+d3.json("geojson/tract/09.geojson"),
+d3.csv("data/tract/ct_cases_hhinc_pop_tract_2021.csv", function(d) {
+    data.set(d.GEOID, +d.case_per_10000) // convert medinc_all column as number
 })
 ]).then(function(loadData){
     let topo = loadData[0]
 
     // Draw the map
-  svg.append("g")
+  svg1.append("g")
     .selectAll("path")
     .data(topo.features)
     .join("path")
@@ -48,9 +65,145 @@ d3.csv("data/tract/hhinc_pop_tract_year.csv", function(d) {
       
       // set the color of each census tract
       .attr("fill", function (d) {
-        d.total = data.get(d.properties.GEOID) || 0;
-        return colorScale(d.total);
-      })
+        d.value = data.get(d.properties.GEOID) || 0;
+        return colorScale(d.value);
+      }) 
 })
 
+// Draw the second map 
+// Is there a better way than reading the data again?
+Promise.all([
+d3.json("geojson/tract/09.geojson"),
+d3.csv("data/tract/ct_cases_hhinc_pop_tract_2021.csv", function(d) {
+    data2.set(d.GEOID, +d.med_hh_income) // + convert this column as number
+})
+]).then(function(loadData){
+    let topo = loadData[0]
+
+    // Draw the map
+  svg2.append("g")
+    .selectAll("path")
+    .data(topo.features)
+    .join("path")
+      // draw each census tract
+      .attr("d", d3.geoPath()
+        .projection(projection)
+      )
+      
+      // set the color of each census tract
+      .attr("fill", function (d) {
+        d.value = data2.get(d.properties.GEOID) || 0;
+        return colorScale2(d.value);
+      }) 
+})
+
+// 
+const margin = {top: 10, right: 30, bottom: 30, left: 60},
+        width_sc = 800 - margin.left - margin.right,
+        height_sc = 700 - margin.top - margin.bottom;
+
+
+// append the svg3 object to the body of the page
+const svg3 = d3.select("#scatter_plot")
+    .append("svg")
+    .attr("width", width_sc + margin.left + margin.right)
+    .attr("height", height_sc + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+//Read the data
+d3.csv("data/tract/ct_cases_hhinc_pop_tract_2021.csv").then( function(data) {
+
+  svg3.append("rect")
+    .attr("x", (width_sc)/3*2)
+    .attr("y", (height_sc)/3*2)
+    .attr("width", width_sc/3)
+    .attr("height", (height_sc)/3)
+    .attr("fill", "#de8c8f");
+    // mid right
+    svg3.append("rect")
+    .attr("x", (width_sc)/3*2)
+    .attr("y", (height_sc)/3)
+    .attr("width", width_sc/3)
+    .attr("height", (height_sc)/3)
+    .attr("fill", "#be7c84");
+    // top right
+    svg3.append("rect")
+    .attr("x", (width_sc)/3*2)
+    .attr("y", 0)
+    .attr("width", width_sc/3)
+    .attr("height", (height_sc)/3)
+    .attr("fill", "#885872");
+
+        // bottom mid
+    svg3.append("rect")
+    .attr("x", (width_sc)/3)
+    .attr("y", (height_sc)/3*2)
+    .attr("width", width_sc/3)
+    .attr("height", (height_sc)/3)
+    .attr("fill", "#edbfb5");
+    // mid mid
+    svg3.append("rect")
+    .attr("x", (width_sc)/3)
+    .attr("y", (height_sc)/3)
+    .attr("width", width_sc/3)
+    .attr("height", (height_sc)/3)
+    .attr("fill", "#cdaeaa");
+    // top mid
+    svg3.append("rect")
+    .attr("x", (width_sc)/3)
+    .attr("y", 0)
+    .attr("width", width_sc/3)
+    .attr("height", (height_sc)/3)
+    .attr("fill", "#978a98");
+
+    // left bottom
+    svg3.append("rect")
+    .attr("x", 0)
+    .attr("y", (height_sc)/3*2)
+    .attr("width", width_sc/3)
+    .attr("height", (height_sc)/3)
+    .attr("fill", "#eee6e5");
+    // left mid
+    svg3.append("rect")
+    .attr("x", 0)
+    .attr("y", (height_sc)/3)
+    .attr("width", width_sc/3)
+    .attr("height", (height_sc)/3)
+    .attr("fill", "#ced5da");
+    // left top
+    svg3.append("rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", width_sc/3)
+    .attr("height", (height_sc)/3)
+    .attr("fill", "#98b1c8");
+
+
+    // Add X axis
+    const x = d3.scaleLinear()
+    .domain([0, 260000])
+    .range([ 0, width_sc ]);
+    svg3.append("g")
+    .attr("transform", `translate(0, ${height_sc})`)
+    .call(d3.axisBottom(x));
+
+    // Add Y axis
+    const y = d3.scaleLinear()
+    .domain([0, 200])
+    .range([ height_sc, 0]);
+    svg3.append("g")
+    .call(d3.axisLeft(y));
+
+    // Add dots
+    svg3.append('g')
+    .selectAll("dot")
+    .data(data)
+    .join("circle")
+        .attr("cx", function (d) { return x(d.med_hh_income); } )
+        .attr("cy", function (d) { return y(d.case_per_10000); } )
+        .attr("r", 1.5)
+        .style("fill", "#000000")
+
+})
 </script>
